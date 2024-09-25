@@ -1,13 +1,21 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const { ApolloServer, gql } = require("apollo-server-express");
+require("dotenv").config();
 
 const app = express();
 
-mongoose.connect("mongodb://localhost/trivia-app", {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-});
+const dbURI = `mongodb://${process.env.MONGODB_USERNAME}:${process.env.MONGODB_PASSWORD}@${process.env.MONGODB_HOST}:${process.env.MONGODB_PORT}/${process.env.MONGODB_DATABASE}`;
+
+console.log(dbURI);
+
+mongoose
+  .connect(dbURI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => console.log("MongoDB connected..."))
+  .catch((err) => console.log(err));
 
 const questionSchema = new mongoose.Schema({
   questionText: String,
