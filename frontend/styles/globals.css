@@ -1,0 +1,16 @@
+/* styles/globals.css */
+
+/* Import Tailwind's base styles */
+@tailwind base;
+
+/* Import Tailwind's component styles */
+@tailwind components;
+
+/* Import Tailwind's utility styles */
+@tailwind utilities;
+
+/* You can add your custom global styles here if needed */
+body {
+  @apply bg-gray-50 text-gray-900; /* Tailwind classes applied globally */
+  font-family: "Inter", sans-serif; /* Example of a custom font */
+}

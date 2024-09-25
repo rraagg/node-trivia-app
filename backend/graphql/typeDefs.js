@@ -10,6 +10,7 @@ const typeDefs = gql`
 
   type Query {
     getQuestions: [Question]
+    getQuestion(id: ID!): Question
   }
 
   type Mutation {
@@ -18,6 +19,13 @@ const typeDefs = gql`
       choices: [String!]!
       correctAnswer: String!
     ): Question
+    updateQuestion(
+      id: ID!
+      questionText: String
+      choices: [String!]
+      correctAnswer: String!
+    ): Question
+    deleteQuestion(id: ID!): String
   }
 `;
 
