@@ -1,12 +1,15 @@
 // pages/_app.js
-import { ApolloProvider } from "@apollo/client";
-import client from "../lib/apollo-client";
 import "../styles/globals.css";
+import { ApolloProvider } from "@apollo/client";
+import client from "../lib/apollo-client"; // Import Apollo Client from the configuration file
+import Layout from "../components/Layout"; // Import the Layout component
 
 function MyApp({ Component, pageProps }) {
   return (
     <ApolloProvider client={client}>
-      <Component {...pageProps} />
+      <Layout>
+        <Component {...pageProps} />
+      </Layout>
     </ApolloProvider>
   );
 }

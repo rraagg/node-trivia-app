@@ -1,15 +1,28 @@
-// pages/add-question.js
-import { useState } from "react";
-import { gql, useMutation } from "@apollo/client";
+// pages/update-question/[id].js
+import { useState, useEffect } from "react";
+import { gql, useQuery, useMutation } from "@apollo/client";
 import { useRouter } from "next/router";
 
-const ADD_QUESTION = gql`
-  mutation AddQuestion(
+const GET_QUESTION = gql`
+  query GetQuestion($id: ID!) {
+    getQuestion(id: $id) {
+      id
+      questionText
+      choices
+      correctAnswer
+    }
+  }
+`;
+
+const UPDATE_QUESTION = gql`
+  mutation UpdateQuestion(
+    $id: ID!
     $questionText: String!
     $choices: [String!]!
     $correctAnswer: String!
   ) {
-    addQuestion(
+    updateQuestion(
+      id: $id
       questionText: $questionText
       choices: $choices
       correctAnswer: $correctAnswer
@@ -22,19 +35,34 @@ const ADD_QUESTION = gql`
   }
 `;
 
-export default function AddQuestionPage() {
+export default function UpdateQuestionPage() {
+  const router = useRouter();
+  const { id } = router.query;
+
+  const { loading, error, data } = useQuery(GET_QUESTION, {
+    variables: { id },
+    skip: !id, // Skip query if no ID is available
+  });
+
+  const [updateQuestion] = useMutation(UPDATE_QUESTION);
   const [questionText, setQuestionText] = useState("");
   const [choices, setChoices] = useState([""]);
   const [correctAnswer, setCorrectAnswer] = useState("");
-  const [addQuestion] = useMutation(ADD_QUESTION);
-  const router = useRouter();
+
+  useEffect(() => {
+    if (data) {
+      setQuestionText(data.getQuestion.questionText);
+      setChoices(data.getQuestion.choices);
+      setCorrectAnswer(data.getQuestion.correctAnswer);
+    }
+  }, [data]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await addQuestion({
-      variables: { questionText, choices, correctAnswer },
+    await updateQuestion({
+      variables: { id, questionText, choices, correctAnswer },
     });
-    router.push("/questions"); // Redirect to questions page after adding
+    router.push("/questions"); // Redirect after update
   };
 
   const addChoice = () => setChoices([...choices, ""]);
@@ -44,9 +72,12 @@ export default function AddQuestionPage() {
     setChoices(updatedChoices);
   };
 
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p>Error: {error.message}</p>;
+
   return (
     <div>
-      <h1 className="text-3xl font-bold mb-4">Add New Question</h1>
+      <h1 className="text-3xl font-bold mb-4">Update Question</h1>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block font-semibold">Question:</label>
@@ -54,7 +85,6 @@ export default function AddQuestionPage() {
             value={questionText}
             onChange={(e) => setQuestionText(e.target.value)}
             className="w-full p-2 border border-gray-300 rounded"
-            placeholder="Enter the question text"
             required
           />
         </div>
@@ -67,7 +97,6 @@ export default function AddQuestionPage() {
               value={choice}
               onChange={(e) => updateChoice(index, e.target.value)}
               className="w-full p-2 border border-gray-300 rounded mt-2"
-              placeholder={`Choice ${index + 1}`}
               required
             />
           ))}
@@ -86,7 +115,6 @@ export default function AddQuestionPage() {
             value={correctAnswer}
             onChange={(e) => setCorrectAnswer(e.target.value)}
             className="w-full p-2 border border-gray-300 rounded"
-            placeholder="Enter the correct answer"
             required
           />
         </div>
@@ -95,7 +123,7 @@ export default function AddQuestionPage() {
           type="submit"
           className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
         >
-          Submit
+          Update
         </button>
       </form>
     </div>
