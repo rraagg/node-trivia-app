@@ -11,6 +11,7 @@ const GET_QUESTION = gql`
       questionText
       choices
       correctAnswer
+      categories
     }
   }
 `;
@@ -21,23 +22,25 @@ const UPDATE_QUESTION = gql`
     $questionText: String!
     $choices: [String!]!
     $correctAnswer: String!
+    $categories: [String!]!
   ) {
     updateQuestion(
       id: $id
       questionText: $questionText
       choices: $choices
       correctAnswer: $correctAnswer
+      categories: $categories
     ) {
       id
       questionText
-      choices
       correctAnswer
+      categories
     }
   }
 `;
 
 export default function UpdateQuestionPage() {
-  const { id } = useParams(); // Get the dynamic ID from the URL
+  const { id } = useParams();
   const router = useRouter();
 
   const { loading, error, data } = useQuery(GET_QUESTION, {
@@ -49,21 +52,33 @@ export default function UpdateQuestionPage() {
   const [questionText, setQuestionText] = useState("");
   const [choices, setChoices] = useState([""]);
   const [correctAnswer, setCorrectAnswer] = useState("");
+  const [categories, setCategories] = useState("");
 
   useEffect(() => {
     if (data) {
       setQuestionText(data.getQuestion.questionText);
       setChoices(data.getQuestion.choices);
       setCorrectAnswer(data.getQuestion.correctAnswer);
+      setCategories(data.getQuestion.categories.join(", ")); // Pre-fill categories as comma-separated string
     }
   }, [data]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    const categoriesArray = categories.split(",").map((cat) => cat.trim());
+
     await updateQuestion({
-      variables: { id, questionText, choices, correctAnswer },
+      variables: {
+        id,
+        questionText,
+        choices,
+        correctAnswer,
+        categories: categoriesArray,
+      },
     });
-    router.push("/questions"); // Redirect to questions page after update
+
+    router.push("/questions");
   };
 
   const addChoice = () => setChoices([...choices, ""]);
@@ -123,6 +138,20 @@ export default function UpdateQuestionPage() {
             onChange={(e) => setCorrectAnswer(e.target.value)}
             className="w-full p-2 border border-gray-300 rounded bg-white text-black dark:bg-gray-800 dark:text-white"
             placeholder="Enter the correct answer"
+            required
+          />
+        </div>
+
+        {/* Categories */}
+        <div>
+          <label className="block font-semibold">
+            Categories (comma-separated):
+          </label>
+          <input
+            value={categories}
+            onChange={(e) => setCategories(e.target.value)}
+            className="w-full p-2 border border-gray-300 rounded bg-white text-black dark:bg-gray-800 dark:text-white"
+            placeholder="Enter categories, e.g. History, Geography"
             required
           />
         </div>

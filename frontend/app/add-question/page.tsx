@@ -9,15 +9,18 @@ const ADD_QUESTION = gql`
     $questionText: String!
     $choices: [String!]!
     $correctAnswer: String!
+    $categories: [String!]!
   ) {
     addQuestion(
       questionText: $questionText
       choices: $choices
       correctAnswer: $correctAnswer
+      categories: $categories
     ) {
       id
       questionText
       correctAnswer
+      categories
     }
   }
 `;
@@ -28,6 +31,7 @@ const GET_QUESTIONS = gql`
       id
       questionText
       correctAnswer
+      categories
     }
   }
 `;
@@ -36,6 +40,7 @@ export default function AddQuestionPage() {
   const [questionText, setQuestionText] = useState("");
   const [choices, setChoices] = useState([""]);
   const [correctAnswer, setCorrectAnswer] = useState("");
+  const [categories, setCategories] = useState("");
   const [addQuestion] = useMutation(ADD_QUESTION, {
     update(cache, { data: { addQuestion } }) {
       const existingQuestions = cache.readQuery({ query: GET_QUESTIONS });
@@ -48,7 +53,7 @@ export default function AddQuestionPage() {
       });
     },
     onCompleted: () => {
-      router.push("/questions"); // Redirect to questions page after adding a question
+      router.push("/questions");
     },
   });
 
@@ -56,7 +61,18 @@ export default function AddQuestionPage() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    await addQuestion({ variables: { questionText, choices, correctAnswer } });
+
+    // Split the categories by commas and trim any extra whitespace
+    const categoriesArray = categories.split(",").map((cat) => cat.trim());
+
+    await addQuestion({
+      variables: {
+        questionText,
+        choices,
+        correctAnswer,
+        categories: categoriesArray,
+      },
+    });
   };
 
   const addChoice = () => setChoices([...choices, ""]);
@@ -113,6 +129,20 @@ export default function AddQuestionPage() {
             onChange={(e) => setCorrectAnswer(e.target.value)}
             className="w-full p-2 border border-gray-300 rounded bg-white text-black dark:bg-gray-800 dark:text-white"
             placeholder="Enter the correct answer"
+            required
+          />
+        </div>
+
+        {/* Categories */}
+        <div>
+          <label className="block font-semibold">
+            Categories (comma-separated):
+          </label>
+          <input
+            value={categories}
+            onChange={(e) => setCategories(e.target.value)}
+            className="w-full p-2 border border-gray-300 rounded bg-white text-black dark:bg-gray-800 dark:text-white"
+            placeholder="Enter categories, e.g. History, Geography"
             required
           />
         </div>
