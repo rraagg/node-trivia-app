@@ -1,7 +1,8 @@
-// pages/update-question/[id].js
+"use client";
+
 import { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
 import { gql, useQuery, useMutation } from "@apollo/client";
-import { useRouter } from "next/router";
 
 const GET_QUESTION = gql`
   query GetQuestion($id: ID!) {
@@ -36,12 +37,12 @@ const UPDATE_QUESTION = gql`
 `;
 
 export default function UpdateQuestionPage() {
+  const { id } = useParams(); // Get the dynamic ID from the URL
   const router = useRouter();
-  const { id } = router.query;
 
   const { loading, error, data } = useQuery(GET_QUESTION, {
     variables: { id },
-    skip: !id, // Skip query if no ID is available
+    skip: !id,
   });
 
   const [updateQuestion] = useMutation(UPDATE_QUESTION);
@@ -57,16 +58,16 @@ export default function UpdateQuestionPage() {
     }
   }, [data]);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     await updateQuestion({
       variables: { id, questionText, choices, correctAnswer },
     });
-    router.push("/questions"); // Redirect after update
+    router.push("/questions"); // Redirect to questions page after update
   };
 
   const addChoice = () => setChoices([...choices, ""]);
-  const updateChoice = (index, value) => {
+  const updateChoice = (index: number, value: string) => {
     const updatedChoices = [...choices];
     updatedChoices[index] = value;
     setChoices(updatedChoices);
@@ -76,19 +77,23 @@ export default function UpdateQuestionPage() {
   if (error) return <p>Error: {error.message}</p>;
 
   return (
-    <div>
+    <div className="container mx-auto p-4">
       <h1 className="text-3xl font-bold mb-4">Update Question</h1>
+
       <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Question Text */}
         <div>
-          <label className="block font-semibold">Question:</label>
+          <label className="block font-semibold">Question Text:</label>
           <input
             value={questionText}
             onChange={(e) => setQuestionText(e.target.value)}
-            className="w-full p-2 border border-gray-300 rounded"
+            className="w-full p-2 border border-gray-300 rounded bg-white text-black dark:bg-gray-800 dark:text-white"
+            placeholder="Enter the question text"
             required
           />
         </div>
 
+        {/* Choices */}
         <div>
           <label className="block font-semibold">Choices:</label>
           {choices.map((choice, index) => (
@@ -96,7 +101,8 @@ export default function UpdateQuestionPage() {
               key={index}
               value={choice}
               onChange={(e) => updateChoice(index, e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded mt-2"
+              className="w-full p-2 border border-gray-300 rounded mt-2 bg-white text-black dark:bg-gray-800 dark:text-white"
+              placeholder={`Choice ${index + 1}`}
               required
             />
           ))}
@@ -109,21 +115,24 @@ export default function UpdateQuestionPage() {
           </button>
         </div>
 
+        {/* Correct Answer */}
         <div>
           <label className="block font-semibold">Correct Answer:</label>
           <input
             value={correctAnswer}
             onChange={(e) => setCorrectAnswer(e.target.value)}
-            className="w-full p-2 border border-gray-300 rounded"
+            className="w-full p-2 border border-gray-300 rounded bg-white text-black dark:bg-gray-800 dark:text-white"
+            placeholder="Enter the correct answer"
             required
           />
         </div>
 
+        {/* Submit Button */}
         <button
           type="submit"
-          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+          className="bg-blue-500 text-white px-6 py-3 rounded hover:bg-blue-600"
         >
-          Update
+          Update Question
         </button>
       </form>
     </div>
