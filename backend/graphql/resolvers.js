@@ -1,5 +1,5 @@
-// graphql/resolvers.js
 const Question = require("../models/Question");
+const mongoSanitize = require("mongo-sanitize");
 
 const resolvers = {
   Query: {
@@ -7,54 +7,51 @@ const resolvers = {
       return await Question.find();
     },
     getQuestion: async (_, { id }) => {
-      return await Question.findById(id);
+      const sanitizedId = mongoSanitize(id); // Sanitize the input
+      return await Question.findById(sanitizedId);
     },
   },
   Mutation: {
-    // Add the categories input to the addQuestion mutation
     addQuestion: async (
       _,
       { questionText, choices, correctAnswer, categories },
     ) => {
+      // Sanitize inputs before saving to the database
+      const sanitizedQuestionText = mongoSanitize(questionText);
+      const sanitizedChoices = choices.map((choice) => mongoSanitize(choice));
+      const sanitizedCorrectAnswer = mongoSanitize(correctAnswer);
+      const sanitizedCategories = categories.map((category) =>
+        mongoSanitize(category),
+      );
+
       const question = new Question({
-        questionText,
-        choices,
-        correctAnswer,
-        categories: categories || [], // Default to an empty array if no categories are provided
+        questionText: sanitizedQuestionText,
+        choices: sanitizedChoices,
+        correctAnswer: sanitizedCorrectAnswer,
+        categories: sanitizedCategories,
       });
-      await question.save();
-      return question;
+
+      return await question.save();
     },
+    updateQuestion: async (_, { id, questionText, choices, correctAnswer }) => {
+      // Sanitize inputs
+      const sanitizedId = mongoSanitize(id);
+      const sanitizedUpdates = {
+        ...(questionText && { questionText: mongoSanitize(questionText) }),
+        ...(choices && {
+          choices: choices.map((choice) => mongoSanitize(choice)),
+        }),
+        ...(correctAnswer && { correctAnswer: mongoSanitize(correctAnswer) }),
+      };
 
-    // Add the ability to update categories in the updateQuestion mutation
-    updateQuestion: async (
-      _,
-      { id, questionText, choices, correctAnswer, categories },
-    ) => {
-      const updates = {};
-      if (questionText) updates.questionText = questionText;
-      if (choices) updates.choices = choices;
-      if (correctAnswer) updates.correctAnswer = correctAnswer;
-      if (categories) updates.categories = categories;
-
-      const updatedQuestion = await Question.findByIdAndUpdate(id, updates, {
+      return await Question.findByIdAndUpdate(sanitizedId, sanitizedUpdates, {
         new: true,
       });
-
-      return updatedQuestion;
     },
-
-    // Delete the question by ID
     deleteQuestion: async (_, { id }) => {
-      await Question.findByIdAndDelete(id);
+      const sanitizedId = mongoSanitize(id); // Sanitize the ID
+      await Question.findByIdAndDelete(sanitizedId);
       return "Question deleted";
-    },
-  },
-
-  // Ensure that categories always return an array, even if it's null or undefined
-  Question: {
-    categories: (parent) => {
-      return parent.categories ? parent.categories : [];
     },
   },
 };
