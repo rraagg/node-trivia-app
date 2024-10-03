@@ -6,6 +6,7 @@ const typeDefs = gql`
     questionText: String!
     choices: [String!]!
     correctAnswer: String!
+    categories: [String!]!
   }
 
   type Query {
@@ -18,12 +19,14 @@ const typeDefs = gql`
       questionText: String!
       choices: [String!]!
       correctAnswer: String!
+      categories: [String!]!
     ): Question
     updateQuestion(
       id: ID!
       questionText: String
       choices: [String!]
       correctAnswer: String!
+      categories: [String!]!
     ): Question
     deleteQuestion(id: ID!): String
   }
