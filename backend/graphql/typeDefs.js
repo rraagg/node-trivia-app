@@ -10,8 +10,9 @@ const typeDefs = gql`
   }
 
   type Query {
-    getQuestions: [Question]
+    getQuestions(categories: [String!], numQuestions: Int!): [Question]
     getQuestion(id: ID!): Question
+    getCategories: [String!]
   }
 
   type Mutation {

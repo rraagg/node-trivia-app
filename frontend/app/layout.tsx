@@ -1,4 +1,3 @@
-// app/layout.tsx
 "use client"; // Mark this file as a client component
 
 import "./globals.css";
@@ -8,7 +7,7 @@ import { ReactNode } from "react";
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
-      <body>
+      <body className="min-h-screen flex flex-col">
         <ApolloProviderWrapper>
           {" "}
           {/* Wrap the application with ApolloProvider */}
@@ -29,9 +28,11 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               </ul>
             </nav>
           </header>
-          <main className="container mx-auto p-4">{children}</main>
+          {/* Main content area */}
+          <main className="container mx-auto p-4 flex-grow">{children}</main>
+          {/* Footer always at the bottom */}
           <footer className="bg-gradient-to-r from-blue-500 to-blue-700 text-white text-center p-4">
-            <p>&copy; 2024 Trivia App</p>
+            <p>&copy; 2024 Trivia App. All rights reserved.</p>
           </footer>
         </ApolloProviderWrapper>
       </body>

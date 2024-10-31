@@ -1,11 +1,12 @@
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
 import { gql, useQuery } from "@apollo/client";
 
 const GET_QUESTIONS = gql`
-  query GetQuestions {
-    getQuestions {
+  query GetQuestions($categories: [String!], $numQuestions: Int!) {
+    getQuestions(categories: $categories, numQuestions: $numQuestions) {
       id
       questionText
       correctAnswer
@@ -14,23 +15,16 @@ const GET_QUESTIONS = gql`
   }
 `;
 
-// Function to generate a random color for each category
-const getRandomColor = (index: number) => {
-  const colors = [
-    "bg-red-500",
-    "bg-blue-500",
-    "bg-green-500",
-    "bg-yellow-500",
-    "bg-purple-500",
-    "bg-pink-500",
-    "bg-indigo-500",
-  ];
-
-  return colors[index % colors.length]; // Return colors in a loop based on index
-};
-
 export default function QuestionsPage() {
-  const { loading, error, data } = useQuery(GET_QUESTIONS);
+  // Providing default values for categories and numQuestions
+  const { loading, error, data, refetch } = useQuery(GET_QUESTIONS, {
+    variables: { categories: [], numQuestions: 10 },
+  });
+
+  // Refetch the questions every time the component is rendered
+  useEffect(() => {
+    refetch();
+  }, [refetch]);
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error.message}</p>;
@@ -38,6 +32,15 @@ export default function QuestionsPage() {
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-3xl font-bold mb-6">Questions List</h1>
+
+      {/* Upload CSV link */}
+      <div className="mb-6">
+        <Link href="/upload-csv">
+          <button className="bg-green-500 text-white px-6 py-3 rounded hover:bg-green-600">
+            Upload CSV
+          </button>
+        </Link>
+      </div>
 
       {/* Add New Question button */}
       <Link href="/add-question">
@@ -48,20 +51,16 @@ export default function QuestionsPage() {
 
       <ul className="space-y-4">
         {data.getQuestions.map(
-          (
-            question: {
-              id: string;
-              questionText: string;
-              correctAnswer: string;
-              categories: string[];
-            },
-            index: number,
-          ) => (
+          (question: {
+            id: string;
+            questionText: string;
+            correctAnswer: string;
+            categories: string[];
+          }) => (
             <li
               key={question.id}
               className="flex justify-between items-start border-b pb-4"
             >
-              {/* Question text and correct answer */}
               <div>
                 <h2 className="text-xl font-semibold mb-2">
                   {question.questionText}
@@ -73,10 +72,10 @@ export default function QuestionsPage() {
                 {/* Categories displayed as buttons */}
                 <div className="flex space-x-2">
                   {question.categories.map(
-                    (category: string, catIndex: number) => (
+                    (category: string, index: number) => (
                       <span
-                        key={catIndex}
-                        className={`text-white px-3 py-1 rounded-full ${getRandomColor(catIndex)}`}
+                        key={index}
+                        className={`text-white px-3 py-1 rounded-full bg-blue-500`}
                       >
                         {category}
                       </span>
@@ -85,7 +84,6 @@ export default function QuestionsPage() {
                 </div>
               </div>
 
-              {/* Update and Delete buttons */}
               <div className="space-x-2">
                 <Link href={`/update-question/${question.id}`}>
                   <button className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
