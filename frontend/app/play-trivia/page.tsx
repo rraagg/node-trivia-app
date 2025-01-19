@@ -167,8 +167,8 @@ export default function PlayTriviaPage() {
             <button
               key={category}
               className={`border px-4 py-2 rounded ${selectedCategories.includes(category)
-                  ? "bg-blue-500 text-white"
-                  : "bg-gray-200 text-black"
+                ? "bg-blue-500 text-white"
+                : "bg-gray-200 text-black"
                 }`}
               onClick={() => handleCategoryClick(category)}
             >
